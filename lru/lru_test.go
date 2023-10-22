@@ -62,6 +62,10 @@ func TestCache_OnEvicted(t *testing.T) {
 	fmt.Println(lru.Len())
 	fmt.Println(evictCounter)
 
+	fmt.Println(lru.Keys())
+	fmt.Println(lru.Values())
+	fmt.Println(lru.Resize(11))
+
 }
 
 //
