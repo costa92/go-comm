@@ -1,5 +1,7 @@
 package lru
 
+import "errors"
+
 // OnEvicted  is used to get a callback when a cache entry is evicted
 type OnEvicted[K comparable, V any] func(key K, value V)
 
@@ -17,13 +19,16 @@ type Value interface {
 }
 
 // NewLRU New Len returns the number of cache entries.
-func NewLRU[K comparable, V any](maxBytes int, onEvicted OnEvicted[K, V]) *LRU[K, V] {
+func NewLRU[K comparable, V any](size int, onEvicted OnEvicted[K, V]) (*LRU[K, V], error) {
+	if size <= 0 {
+		return nil, errors.New("must provide a positive size")
+	}
 	return &LRU[K, V]{
-		size:      maxBytes,                 // 允许使用的最大内存
+		size:      size,                     // 允许使用的最大内存
 		ll:        NewList[K, V](),          // 双向链表
 		cache:     make(map[K]*Entry[K, V]), // 字典
 		OnEvicted: onEvicted,                // 某条记录被移除时的回调函数，可以为 nil
-	}
+	}, nil
 }
 
 // Purge is used to completely clear the cache.
@@ -136,4 +141,12 @@ func (c *LRU[K, V]) removeOldest() {
 	if ent := c.ll.Back(); ent != nil {
 		c.removeElement(ent)
 	}
+}
+
+func (c *LRU[K, V]) Remove(key K) bool {
+	if ent, ok := c.cache[key]; ok {
+		c.removeElement(ent)
+		return true
+	}
+	return false
 }

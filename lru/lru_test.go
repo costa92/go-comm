@@ -12,7 +12,10 @@ func (d String) Len() int {
 }
 
 func TestGet(t *testing.T) {
-	lru := NewLRU[string, String](180, nil)
+	lru, err := NewLRU[string, String](180, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	lru.Add("key1", String("1234"))
 	if v, ok := lru.Get("key1"); !ok || string(v.(String)) != "1234" {
 		fmt.Println(v)
@@ -28,7 +31,10 @@ func TestCache_RemoveOldest(t *testing.T) {
 	k1, k2, k3 := "key1", "key2", "key3"
 	v1, v2, v3 := "val1", "val2", "val3"
 	cap := len(k1 + k2 + v1 + v2)
-	lru := NewLRU[string, String](cap, nil)
+	lru, err := NewLRU[string, String](cap, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	lru.Add(k1, String(v1))
 	lru.Add(k2, String(v2))
 	lru.Add(k3, String(v3))
@@ -44,13 +50,17 @@ func TestCache_OnEvicted(t *testing.T) {
 		fmt.Println(k, v)
 		evictCounter++
 	}
-	lru := NewLRU[string, String](10, callback)
+	lru, err := NewLRU[string, String](180, callback)
+	if err != nil {
+		t.Fatal(err)
+	}
 	lru.Add("kl", String("vl"))
 	lru.Add("k2", String("v2"))
 	lru.Add("k3", String("v3"))
 	lru.Add("k4", String("v4"))
-	fmt.Println(evictCounter)
+	lru.Remove("k3")
 	fmt.Println(lru.Len())
+	fmt.Println(evictCounter)
 
 }
 
